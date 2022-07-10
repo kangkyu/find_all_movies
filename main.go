@@ -33,6 +33,7 @@ type SecretsList struct {
 	Host                 string `json:"host"`
 	Port                 int    `json:"port"`
 	DBInstanceIdentifier string `json:"dbInstanceIdentifier"`
+	ProxyEndpoint        string `json:"proxyendpoint`
 }
 
 var (
@@ -43,9 +44,9 @@ var (
 
 func findAll() (events.APIGatewayProxyResponse, error) {
 	ctx := context.TODO()
-	cfg, err := config.LoadDefaultConfig(
-		ctx,
-	)
+	fmt.Println("Starting...")
+	cfg, err := config.LoadDefaultConfig(ctx)
+
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
@@ -53,6 +54,7 @@ func findAll() (events.APIGatewayProxyResponse, error) {
 		}, nil
 	}
 
+	fmt.Println("Fetching secrets...")
 	svc := secretsmanager.NewFromConfig(cfg)
 
 	input := &secretsmanager.GetSecretValueInput{
@@ -82,14 +84,17 @@ func findAll() (events.APIGatewayProxyResponse, error) {
 	// postgres DNS string
 	conString := fmt.Sprintf("%s://%s:%s@%s:%d/%s",
 		secrets.Engine, secrets.UserName, secrets.Password,
-		secrets.Host, secrets.Port, secrets.DBInstanceIdentifier)
+		secrets.ProxyEndpoint, secrets.Port, secrets.DBInstanceIdentifier)
 
 	// Use db to perform SQL operations on database
+	fmt.Println("Setting up database...")
 	db := setupDB(conString)
 
 	// fetch all movies from the db
+	fmt.Println("Querying...")
 	rows, err := db.Queryx("SELECT id, name, cover, description FROM movies")
 
+	fmt.Println("Reading rows...")
 	var items []Movie
 	// iterate over each row
 	for rows.Next() {
@@ -106,6 +111,7 @@ func findAll() (events.APIGatewayProxyResponse, error) {
 		}, nil
 	}
 
+	fmt.Println("Responding...")
 	response, err := json.Marshal(items)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
@@ -128,11 +134,13 @@ func main() {
 }
 
 func setupDB(conString string) *sqlx.DB {
-	db, err := sqlx.Connect("postgres", conString)
+	fmt.Println("Connecting...")
+	db, err := sqlx.Open("postgres", conString)
 	if err != nil {
-		panic("failed to connect postgres db: " + err.Error())
+		panic("failed to open postgres db: " + err.Error())
 	}
 
+	fmt.Println("Ping! Ping!")
 	err = db.Ping()
 
 	return db
