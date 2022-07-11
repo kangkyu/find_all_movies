@@ -4,6 +4,7 @@ services:
     image: postgres:13-alpine
     restart: always
     container_name: sam-postgres-db
+    hostname: postgres
     environment:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=docker
@@ -27,4 +28,4 @@ services:
 
 networks:
   samsclub:
-    name: ntwk
+    name: sams-ntwk
