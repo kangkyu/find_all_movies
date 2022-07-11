@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name sam-movies --s3-bucket hello-world-here --capabilities CAPABILITY_IAM --region us-west-2
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name sam-movies --s3-bucket movies-here --capabilities CAPABILITY_IAM --region us-west-2
 
   post-deploy:
     runs-on: ubuntu-latest
