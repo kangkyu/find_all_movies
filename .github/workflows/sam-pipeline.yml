@@ -24,7 +24,12 @@ jobs:
   post-deploy:
       - name: Install dbmate
         run: |
-          RUN apk update && apk --no-cache add curl
-          RUN curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/latest/download/dbmate-linux-amd64
-          RUN apk add sudo
-          RUN sudo chmod +x /usr/local/bin/dbmate
+          apk update && apk --no-cache add curl
+          curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/latest/download/dbmate-linux-amd64
+          apk add sudo
+          sudo chmod +x /usr/local/bin/dbmate
+
+      - name: Update database
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/docker?sslmode=disable
+        run: dbmate migrate
