@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+      - run: sam build --use-container
+
+  deploy:
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name sam-hello-world --s3-bucket hello-world-here --capabilities CAPABILITY_IAM --region us-west-2
+
+  post-deploy:
+      - name: Install dbmate
+        run: |
+          apk update && apk --no-cache add curl
+          curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/latest/download/dbmate-linux-amd64
+          apk add sudo
+          sudo chmod +x /usr/local/bin/dbmate
+
+      - name: Update database
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/docker?sslmode=disable
+        run: dbmate migrate
