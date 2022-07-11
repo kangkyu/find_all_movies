@@ -1,2 +1,7 @@
 deployment.zip
 function/main
+
+.aws-sam/
+Dockerfile
+data/
+init.sql

@@ -1,0 +1,30 @@
+version: '2'
+services:
+  sam-postgres-db:
+    image: postgres:13-alpine
+    restart: always
+    container_name: sam-postgres-db
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=docker
+      # - POSTGRES_USER=postgres
+    ports:
+      - '5433:5432'
+    networks:
+      samsclub:
+    volumes:
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/db:/var/lib/postgresql/data
+
+  # dbmate:
+  #   build:
+  #     context: .
+  #     target: release
+  #   image: amacneil/dbmate
+  #   container_name: dbmate-container
+  #   depends_on:
+  #     - sam-postgres-db
+
+networks:
+  samsclub:
+    name: ntwk
